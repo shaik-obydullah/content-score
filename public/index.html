@@ -1,0 +1,200 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>ContentScore — score any web page</title>
+    <meta
+      name="description"
+      content="Analyze any web page and get a content score with readability, structure, topic focus, SEO basics and media breakdowns."
+    />
+    <link rel="stylesheet" href="/styles.css" />
+    <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='22' fill='%236366f1'/%3E%3Ctext x='50' y='68' font-size='56' font-family='sans-serif' font-weight='700' text-anchor='middle' fill='white'%3EC%3C/text%3E%3C/svg%3E" />
+  </head>
+  <body>
+    <div class="bg-glow" aria-hidden="true"></div>
+
+    <header class="site-header">
+      <a class="brand" href="/">
+        <span class="brand-mark">C</span>
+        <span>ContentScore</span>
+      </a>
+      <span class="badge">local tool · no API key</span>
+    </header>
+
+    <main>
+      <section class="hero">
+        <h1>How good is your page's content?</h1>
+        <p class="subtitle">
+          Paste any URL. Get a 0–100 score across content depth, readability, structure, topic focus,
+          SEO basics, media and technical fundamentals — plus a list of fixes.
+        </p>
+
+        <form id="score-form" class="score-form" novalidate>
+          <label class="visually-hidden" for="url">Website URL</label>
+          <div class="input-wrap">
+            <svg class="input-icon" viewBox="0 0 24 24" aria-hidden="true">
+              <path d="M10 13a5 5 0 0 0 7.07 0l2.12-2.12a5 5 0 0 0-7.07-7.07L10.7 5.23" />
+              <path d="M14 11a5 5 0 0 0-7.07 0L4.8 13.12a5 5 0 0 0 7.07 7.07l1.42-1.42" />
+            </svg>
+            <input
+              id="url"
+              name="url"
+              type="text"
+              inputmode="url"
+              autocomplete="url"
+              placeholder="example.com or https://example.com/page"
+              spellcheck="false"
+            />
+          </div>
+          <button type="submit" id="submit-btn">
+            <span class="btn-label">Analyze page</span>
+            <span class="spinner" aria-hidden="true"></span>
+          </button>
+        </form>
+
+        <div class="examples">
+          <span>Try:</span>
+          <button type="button" class="example" data-url="https://example.com">example.com</button>
+          <button type="button" class="example" data-url="https://en.wikipedia.org/wiki/Content_marketing">Wikipedia</button>
+          <button type="button" class="example" data-url="https://developer.mozilla.org/en-US/docs/Web/HTML">MDN</button>
+        </div>
+
+        <p id="error" class="error" role="alert" hidden></p>
+      </section>
+
+      <section id="loading" class="loading" hidden aria-live="polite">
+        <div class="loading-bars">
+          <span></span><span></span><span></span><span></span><span></span><span></span>
+        </div>
+        <p>Fetching the page and analyzing its content…</p>
+      </section>
+
+      <section id="results" hidden>
+        <div class="score-card">
+          <div class="gauge-wrap">
+            <svg class="gauge" viewBox="0 0 140 140" role="img" aria-labelledby="gauge-title">
+              <title id="gauge-title">Overall content score</title>
+              <circle class="gauge-track" cx="70" cy="70" r="60" />
+              <circle id="gauge-value" class="gauge-value" cx="70" cy="70" r="60" />
+            </svg>
+            <div class="gauge-center">
+              <span id="score-number">–</span>
+              <small>/ 100</small>
+            </div>
+          </div>
+
+          <div class="score-meta">
+            <div class="grade-row">
+              <span id="grade" class="grade">–</span>
+              <div>
+                <h2 id="score-verdict">Analyzing…</h2>
+                <a id="final-url" class="final-url" href="#" target="_blank" rel="noopener noreferrer"></a>
+              </div>
+            </div>
+            <p id="score-blurb" class="score-blurb"></p>
+            <div class="fetch-meta">
+              <span id="fetch-time"></span>
+              <span id="fetch-size"></span>
+              <span id="cache-badge" hidden>cached</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="categories-card">
+          <div class="card-heading">
+            <h2>Score breakdown</h2>
+            <span class="muted">Weighted contribution to the total</span>
+          </div>
+          <div id="categories" class="categories"></div>
+        </div>
+
+        <div id="stats" class="stats"></div>
+
+        <div class="two-col">
+          <div class="panel">
+            <div class="card-heading">
+              <h2>Top terms</h2>
+              <span class="muted">Most frequent words</span>
+            </div>
+            <div id="keywords" class="keywords"></div>
+          </div>
+
+          <div class="panel">
+            <div class="card-heading">
+              <h2>Recommended fixes</h2>
+              <span class="muted">Ordered by impact</span>
+            </div>
+            <ul id="recommendations" class="recommendations"></ul>
+          </div>
+        </div>
+
+        <details class="panel details">
+          <summary>
+            <span>Page details</span>
+            <span class="muted">SEO tags, headings and content preview</span>
+          </summary>
+          <div class="details-body">
+            <div>
+              <h3>SEO &amp; meta</h3>
+              <dl id="seo-list" class="kv"></dl>
+            </div>
+            <div>
+              <h3>Heading outline</h3>
+              <ol id="heading-list" class="outline"></ol>
+            </div>
+            <div class="preview-wrap">
+              <h3>Content preview</h3>
+              <p id="preview" class="preview"></p>
+            </div>
+          </div>
+        </details>
+      </section>
+
+      <section class="how">
+        <h2>How the score works</h2>
+        <div class="how-grid">
+          <div>
+            <h3>Content depth · 20%</h3>
+            <p>Word count and approximate reading time. Thin pages score lower.</p>
+          </div>
+          <div>
+            <h3>Readability · 20%</h3>
+            <p>Flesch Reading Ease, targeting the 60–70 range that suits web readers.</p>
+          </div>
+          <div>
+            <h3>Structure · 15%</h3>
+            <p>One H1, sensible heading density, a clean hierarchy and descriptive headings.</p>
+          </div>
+          <div>
+            <h3>Topic focus · 15%</h3>
+            <p>Whether the main term appears in the title, H1, intro and body at a healthy density.</p>
+          </div>
+          <div>
+            <h3>SEO basics · 15%</h3>
+            <p>Title, meta description, canonical, language, viewport and HTTPS.</p>
+          </div>
+          <div>
+            <h3>Media &amp; links · 10%</h3>
+            <p>Image alt coverage plus internal and external linking.</p>
+          </div>
+          <div>
+            <h3>Technical · 5%</h3>
+            <p>HTTPS, structured data, Open Graph tags and favicon.</p>
+          </div>
+        </div>
+        <p class="disclaimer">
+          This is a heuristic score, not an official ranking factor. Treat it as a checklist — the
+          recommendations matter more than the exact number.
+        </p>
+      </section>
+    </main>
+
+    <footer class="site-footer">
+      <span>ContentScore · runs locally on your machine</span>
+      <a href="/api/health">API health</a>
+    </footer>
+
+    <script src="/app.js" type="module"></script>
+  </body>
+</html>
